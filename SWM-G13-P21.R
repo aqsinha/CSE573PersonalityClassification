@@ -29,3 +29,19 @@ repeat {
 }
 
 users <- users[match(rownames(ufp), users$userid), ]
+
+#SVD 
+
+install.packages('irlba')
+library(irlba)
+
+#Perform SVD for 10 terms 
+Msvd<-irlba(M,nv=10);
+
+#SVD scores of users 
+u<-Msvd$u
+
+#SVD scores of the likes
+v<-Msvd$v
+
+plot(Msvd$d)

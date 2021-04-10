@@ -30,45 +30,18 @@ repeat {
 
 users <- users[match(rownames(ufp), users$userid), ]
 
-#SVD and PCA 
+#SVD 
 
 install.packages('irlba')
-
 library(irlba)
-Msvd<-irlba(M,nv=5);
+
+#Perform SVD for 10 terms 
+Msvd<-irlba(M,nv=10);
 
 #SVD scores of users 
-head(Msvd$d)
 u<-Msvd$u
 
 #SVD scores of the likes
 v<-Msvd$v
 
-head(u)
-dim(u)
-
-head(v)
-dim(v)
-
-#PCA for users 
-
-#Construct the user matrix for PCA
-
-
-pca <- prcomp(u, scale=TRUE) 
-
-library(ggplot2)
-
-
-
-pca.data <- u.frame(Sample=rownames(pca$x),
-                       X=pca$x[,1],
-                       Y=pca$x[,2])
-pca.data
-
-ggplot(data=pca.datapca, aes(x=X, y=Y, label=Sample)) +
-  geom_text() +
-  xlab(paste("PC1 - ", pca.var.per[1], "%", sep="")) +
-  ylab(paste("PC2 - ", pca.var.per[2], "%", sep="")) +
-  theme_bw() +
-  ggtitle("My PCA Graph")
+plot(Msvd$d)

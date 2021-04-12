@@ -45,3 +45,73 @@ u<-Msvd$u
 v<-Msvd$v
 
 plot(Msvd$d)
+
+# Obtain rotated V matrix:
+
+v_rot <- unclass(varimax(Msvd$v)$loadings)
+
+# The cross-product of M and v_rot gives u_rot:
+
+u_rot <- as.matrix(M %*% v_rot)
+
+#LDA
+
+library(topicmodels)
+
+# Perform LDA analysis, for details on setting alpha and delta parameters. 
+
+Mlda <- LDA(M, control = list(alpha = 10, delta = .1, seed=68), k = 10, method = "Gibbs")
+
+# Extract user LDA cluster memberships
+gamma <- Mlda@gamma
+
+# Extract Like LDA clusters memberships
+# betas are stored as logarithms, convert logs to probabilities
+beta <- exp(Mlda@beta) 
+
+# Log-likelihood of the model :
+Mlda@loglikelihood
+
+# Correlate user traits and their SVD scores
+# users[,-1] is used to exclude the column with IDs
+cor(u_rot, users[,-1], use = "pairwise")
+
+# Correlate user traits and their LDA scores
+cor(gamma, users[,-1], use = "pairwise")
+
+# Plot the correlation matrix
+library(corrplot)
+corrplot(x, type = "upper", order = "hclust", 
+         tl.col = "black", tl.srt = 45)
+
+# Load these libraries
+library(ggplot2)
+library(reshape2)
+
+# Get correlations
+x<-round(cor(u_rot, users[,-1], use="p"),2)
+
+# Reshape it in an easy way using ggplot2
+y<-melt(x)
+colnames(y)<-c("SVD", "Trait", "r")
+
+# Produce the plot
+qplot(x=SVD, y=Trait, data=y, fill=r, geom="tile") +
+  scale_fill_gradient2(limits=range(x), breaks=c(min(x), 0, max(x)))+
+  theme(axis.text=element_text(size=12), 
+        axis.title=element_text(size=14,face="bold"),
+        panel.background = element_rect(fill='white', colour='white'))+
+  labs(x=expression('SVD'[rot]), y=NULL)
+
+x<-round(cor(gamma, users[,-1], use="p"),2)
+y<-melt(x)
+colnames(y)<-c("LDA", "Trait", "r")
+
+# Produce the plot
+qplot(x=LDA, y=Trait, data=y, fill=r, geom="tile") +
+  scale_fill_gradient2(limits=range(x), breaks=c(min(x), 0, max(x)))+
+  theme(axis.text=element_text(size=12), 
+        axis.title=element_text(size=14,face="bold"),
+        panel.background = element_rect(fill='white', colour='white'))+
+  labs(x=expression('LDA'), y=NULL)
+
